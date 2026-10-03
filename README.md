@@ -48,6 +48,8 @@ docs/screenshots/        浏览器测试截图、真实导出 PNG
 
 要求 Docker Engine 与 Compose v2，建议至少 2 CPU / 4GB RAM。没有 AI Key 也能启动，首次安装页面会配置密钥。
 
+Docker 部署文件集中放在 `deploy/docker/`。以下命令从项目根目录执行，`--project-directory .` 会让 Compose 继续从根目录读取 `.env` 和解析数据卷路径。
+
 1. 生成本地配置：
 
    ```bash
@@ -59,9 +61,9 @@ docs/screenshots/        浏览器测试截图、真实导出 PNG
 2. 检查并启动：
 
    ```bash
-   docker compose config --quiet
-   docker compose up -d --build
-   docker compose logs -f app worker migrate
+   docker compose --project-directory . -f deploy/docker/docker-compose.yml config --quiet
+   docker compose --project-directory . -f deploy/docker/docker-compose.yml up -d --build
+   docker compose --project-directory . -f deploy/docker/docker-compose.yml logs -f app worker migrate
    ```
 
    Compose 依次启动 PostgreSQL / Redis，运行 Prisma Migration，然后启动 app、worker 和每日清理服务。数据库和 Redis 不对外暴露，app 默认只绑定服务器本机 `127.0.0.1:3000`。
@@ -79,7 +81,7 @@ docs/screenshots/        浏览器测试截图、真实导出 PNG
    将域名 DNS 指向服务器，然后运行：
 
    ```bash
-   docker compose --profile https up -d --build
+   docker compose --project-directory . -f deploy/docker/docker-compose.yml --profile https up -d --build
    ```
 
    此时 app 端口仍只绑定 localhost，Caddy 负责 TLS 和覆盖客户端 IP。只在可信代理覆盖转发头时启用 `TRUST_PROXY`。
@@ -179,9 +181,9 @@ TEST_REDIS_URL='redis://localhost:6379/1' npm run test:e2e
 更新前备份 PostgreSQL、上传目录和 `.env`，特别是 `ENCRYPTION_KEY`。然后：
 
 ```bash
-docker compose build
-docker compose run --rm migrate
-docker compose up -d app worker maintenance
+docker compose --project-directory . -f deploy/docker/docker-compose.yml build
+docker compose --project-directory . -f deploy/docker/docker-compose.yml run --rm migrate
+docker compose --project-directory . -f deploy/docker/docker-compose.yml up -d app worker maintenance
 ```
 
 备份示例（在受保护目录执行，不将备份提交到 Git）：
@@ -189,8 +191,8 @@ docker compose up -d app worker maintenance
 ```bash
 umask 077
 mkdir -p backups
-docker compose exec -T postgres pg_dump -U cecebe -d cecebe -Fc > backups/database.dump
-docker compose exec -T app tar -czf - -C /app/public uploads > backups/uploads.tar.gz
+docker compose --project-directory . -f deploy/docker/docker-compose.yml exec -T postgres pg_dump -U cecebe -d cecebe -Fc > backups/database.dump
+docker compose --project-directory . -f deploy/docker/docker-compose.yml exec -T app tar -czf - -C /app/public uploads > backups/uploads.tar.gz
 cp .env backups/environment.env
 ```
 

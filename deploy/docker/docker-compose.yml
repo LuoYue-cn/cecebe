@@ -1,6 +1,8 @@
 name: cecebe
 x-app: &app
-  build: .
+  build:
+    context: .
+    dockerfile: deploy/docker/Dockerfile
   restart: unless-stopped
   environment:
     DATABASE_URL: postgresql://cecebe:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/cecebe?schema=public
@@ -106,7 +108,7 @@ services:
       SITE_DOMAIN: ${SITE_DOMAIN:-localhost}
     ports: ["80:80", "443:443"]
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/docker/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
     depends_on: [app]
