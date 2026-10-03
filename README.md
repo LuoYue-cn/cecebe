@@ -1,5 +1,7 @@
 # 测测be
 
+<p align="center"><strong>🚀 立即体验线上网站</strong><br><a href="https://ccb.h666h.com"><strong>https://ccb.h666h.com</strong></a></p>
+
 可自行部署的 AI 测试生成平台。用户用自然语言描述主题，AI 设计结构与题目，服务器执行确定性评分，再由 AI 根据分数生成结构化报告。核心功能免费，商业化仅通过正文之后的页脚广告。
 
 ## 已实现能力
@@ -18,6 +20,24 @@
 - 中文 UI、测试语言选择、Light / Dark / System、移动适配、键盘表单标签、服务异常 / 空状态 / 404 / 403 / 500。
 
 不包含会员、积分、充值、VIP、付费测试、弹窗广告或广告解锁。
+
+## 网站截图演示
+
+以下为实际产品页面的浏览器截图。截图来自验收环境，题目和报告内容使用测试数据，只展示页面与交互，不代表真实 AI 的内容质量。
+
+### 首页 · 桌面端
+
+<p><img src="docs/screenshots/home-desktop.png" alt="测测be桌面端首页截图" width="900"></p>
+
+### 手机端
+
+<details>
+<summary>展开查看手机首页与测试介绍页</summary>
+
+<p><img src="docs/screenshots/home-mobile.png" alt="测测be手机端首页截图" width="300"></p>
+<p><img src="docs/screenshots/test-mobile.png" alt="测测be手机端测试介绍页截图" width="300"></p>
+
+</details>
 
 ## 技术与目录
 
@@ -42,7 +62,7 @@ public/uploads/          品牌上传，生产通过持久卷保存
 docs/screenshots/        浏览器测试截图、真实导出 PNG
 ```
 
-截图来自自动化验收，使用测试专用 AI fixture，不代表真实 AI 的内容质量。示例不内置于产品。
+自动化验收使用测试专用 AI fixture；示例不内置于产品。
 
 ## Docker 部署
 
