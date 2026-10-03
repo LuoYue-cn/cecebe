@@ -1,0 +1,14 @@
+node_modules/
+.next/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+coverage/
+test-results/
+playwright-report/
+public/uploads/*
+!public/uploads/.gitkeep
+.local/

@@ -1,0 +1,55 @@
+{
+  "name": "cecebe",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "prisma generate && next build",
+    "start": "node scripts/start.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "node scripts/e2e.mjs",
+    "db:migrate": "prisma migrate deploy",
+    "worker": "tsx src/services/worker.ts",
+    "maintenance": "tsx scripts/maintenance.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "argon2": "^0.44.0",
+    "bullmq": "^5.58.0",
+    "dotenv": "^18.0.5",
+    "html-to-image": "^1.11.13",
+    "ioredis": "^5.8.0",
+    "lucide-react": "^0.468.0",
+    "next": "^15.5.0",
+    "nodemailer": "^10.0.13",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.25.0",
+    "zod-to-json-schema": "^3.25.2",
+    "prisma": "^6.19.0",
+    "tsx": "^4.20.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.0.0",
+    "@types/nodemailer": "^7.0.0",
+    "@types/pngjs": "^6.0.5",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "^15.5.0",
+    "jsqr": "^1.4.0",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.9.9",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.28",
+    "deepmerge-ts": "^8.0.2"
+  }
+}

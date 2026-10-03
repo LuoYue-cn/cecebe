@@ -1,0 +1,285 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id           String          @id @default(uuid())
+  email        String          @unique
+  username     String
+  passwordHash String
+  role         Role            @default(USER)
+  status       String          @default("active")
+  deletedAt    DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  sessions     Session[]
+  accounts     Account[]
+  tests        Test[]
+  attempts     TestSession[]
+  resets       PasswordReset[]
+}
+
+model Session {
+  id        String   @id
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  csrf      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+model Account {
+  id                String @id @default(uuid())
+  userId            String
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String
+  providerAccountId String
+
+  @@unique([provider, providerAccountId])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}
+
+model SystemSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model AIProvider {
+  id              String   @id @default(uuid())
+  name            String
+  type            String
+  baseUrl         String
+  encryptedKey    String
+  generationModel String
+  analysisModel   String
+  temperature     Float    @default(0.7)
+  maxTokens       Int      @default(12000)
+  timeout         Int      @default(120)
+  enabled         Boolean  @default(true)
+  isDefault       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}
+
+model PromptTemplate {
+  id        String   @id @default(uuid())
+  kind      String
+  version   Int
+  content   String
+  createdBy String
+  createdAt DateTime @default(now())
+
+  @@unique([kind, version])
+}
+
+model Test {
+  id               String        @id @default(uuid())
+  creatorId        String?
+  creator          User?         @relation(fields: [creatorId], references: [id])
+  anonymousOwner   String?
+  slug             String        @unique
+  title            String
+  description      String
+  type             String
+  sensitivity      String
+  visibility       String        @default("private")
+  status           String        @default("draft")
+  cover            String?
+  recommended      Boolean       @default(false)
+  currentVersionId String?       @unique
+  currentVersion   TestVersion?  @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  versions         TestVersion[] @relation("Versions")
+  shares           Share[]
+  deletedAt        DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([status, visibility])
+}
+
+model TestVersion {
+  id         String        @id @default(uuid())
+  testId     String
+  test       Test          @relation("Versions", fields: [testId], references: [id])
+  currentOf  Test?         @relation("CurrentVersion")
+  version    Int
+  schema     Json
+  createdBy  String
+  createdAt  DateTime      @default(now())
+  dimensions Dimension[]
+  questions  Question[]
+  sessions   TestSession[]
+
+  @@unique([testId, version])
+}
+
+model Dimension {
+  id          String      @id @default(uuid())
+  versionId   String
+  version     TestVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  key         String
+  name        String
+  description String
+
+  @@unique([versionId, key])
+}
+
+model Question {
+  id        String           @id @default(uuid())
+  versionId String
+  version   TestVersion      @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  key       String
+  type      String
+  text      String
+  position  Int
+  options   QuestionOption[]
+
+  @@unique([versionId, key])
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  key        String
+  text       String
+  scores     Json
+}
+
+model TestSession {
+  id                 String          @id @default(uuid())
+  testVersionId      String
+  testVersion        TestVersion     @relation(fields: [testVersionId], references: [id])
+  userId             String?
+  user               User?           @relation(fields: [userId], references: [id])
+  anonymousSessionId String?
+  startedAt          DateTime        @default(now())
+  completedAt        DateTime?
+  consistencyScore   Float?
+  status             String          @default("started")
+  answers            Answer[]
+  score              ScoreResult?
+  analysis           AnalysisResult?
+  shares             Share[]
+
+  @@index([userId, completedAt])
+}
+
+model Answer {
+  id         String      @id @default(uuid())
+  sessionId  String
+  session    TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId String
+  answer     Json
+  createdAt  DateTime    @default(now())
+
+  @@unique([sessionId, questionId])
+}
+
+model ScoreResult {
+  sessionId       String      @id
+  session         TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  totalScore      Float
+  dimensionScores Json
+  metadata        Json
+}
+
+model AnalysisResult {
+  sessionId       String      @id
+  session         TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  resultLabel     String
+  summary         String
+  traits          Json
+  strengths       Json
+  potentialIssues Json
+  suggestions     Json
+  shareSummary    String
+  dimensionInsights Json @default("[]")
+  model           String
+  createdAt       DateTime    @default(now())
+}
+
+model Share {
+  id             String       @id @default(uuid())
+  testId         String
+  test           Test         @relation(fields: [testId], references: [id])
+  sessionId      String?
+  session        TestSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  creatorId      String?
+  anonymousOwner String?
+  shareCode      String       @unique
+  type           String
+  clickCount     Int          @default(0)
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+}
+
+model AdConfig {
+  id          String  @id @default(uuid())
+  enabled     Boolean @default(false)
+  code        String
+  pages       Json
+  label       String  @default("广告 / Advertisement")
+  impressions Int     @default(0)
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  action    String
+  target    String
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model AIRequestLog {
+  id               String   @id @default(uuid())
+  providerId       String
+  model            String
+  kind             String
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  latency          Int
+  status           String
+  error            String?
+  createdAt        DateTime @default(now())
+}
+
+model GenerationJob {
+  id             String   @id @default(uuid())
+  ownerId        String?
+  anonymousOwner String?
+  status         String   @default("queued")
+  stage          String   @default("queued")
+  input          Json
+  resultId       String?
+  error          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model RateLimitRecord {
+  key       String   @id
+  count     Int
+  expiresAt DateTime
+}
