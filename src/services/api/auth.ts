@@ -24,7 +24,8 @@ export async function authAction(action: string, body: unknown, ip: string) {
     404,
     "接口不存在。",
   );
-  await rateLimit(`auth:${action}:${ip}`, 1, 60);
+  // Allow a few login retries for mistyped credentials while limiting password guessing.
+  await rateLimit(`auth:${action}:${ip}`, action === "login" ? 5 : 1, 60);
   if (action === "register") {
     assert((await settings()).registration, 403, "本站已关闭注册。");
     const input = credentials
